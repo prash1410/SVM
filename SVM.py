@@ -9,11 +9,10 @@ reader = csv.reader(file)
 X = []
 for row in reader:
     varianceArray = np.fromstring(row[0], dtype=np.float, sep=',')
-    angleArray = np.fromstring(row[1], dtype=np.float, sep=',')
-    xAccelerationArray = np.fromstring(row[2], dtype=np.float, sep=',')
-    yAccelerationArray = np.fromstring(row[3], dtype=np.float, sep=',')
-    zAccelerationArray = np.fromstring(row[4], dtype=np.float, sep=',')
-    tempArray = np.array([varianceArray, angleArray, xAccelerationArray, yAccelerationArray, zAccelerationArray])
+    xZeroCrossingsArray = np.fromstring(row[1], dtype=np.float, sep=',')
+    yZeroCrossingsArray = np.fromstring(row[2], dtype=np.float, sep=',')
+    zZeroCrossingsArray = np.fromstring(row[3], dtype=np.float, sep=',')
+    tempArray = np.array([varianceArray, xZeroCrossingsArray, yZeroCrossingsArray, zZeroCrossingsArray])
     X.append(tempArray)
 
 file.close()
@@ -30,14 +29,15 @@ for row in reader:
 file.close()
 print(len(Y))
 
-classifier = svm.SVC(kernel='rbf', C=50, gamma=0.01)
+classifier = svm.SVC(kernel='rbf', C=100, gamma=0.1)
 classifier.fit(X, Y)
 porter = Porter(classifier, language='java')
 output = porter.export()
 
+'''
 file = open("Prediction.csv", "r")
 reader = csv.reader(file)
-
+drivingCounter = 0
 for row in reader:
     varianceArray = np.fromstring(row[0], dtype=np.float, sep=',')
     angleArray = np.fromstring(row[1], dtype=np.float, sep=',')
@@ -46,7 +46,10 @@ for row in reader:
     zAccelerationArray = np.fromstring(row[4], dtype=np.float, sep=',')
     predictionArray = np.array([varianceArray, angleArray, xAccelerationArray, yAccelerationArray, zAccelerationArray])
     predictionArray = predictionArray.reshape(1, -1)
+    result = classifier.predict(predictionArray)
+    if 'Driving' in result: drivingCounter = drivingCounter+1;
     print(classifier.predict(predictionArray))
+'''
 
 with open('SVC.java', 'w') as f:
     f.write(output)
@@ -65,3 +68,4 @@ with open("output.txt", 'w') as f:
         if row:
             f.write(row + "\n")
         vectorsString = vectorsString[vectorsString.find("}") + 1:len(vectorsString)]
+
