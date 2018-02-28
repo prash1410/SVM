@@ -8,6 +8,7 @@ reader = csv.reader(file)
 
 X = []
 Y = []
+next(reader)
 for row in reader:
     varianceArray = np.fromstring(row[0], dtype=np.float, sep=',')
     xZeroCrossingsArray = np.fromstring(row[1], dtype=np.float, sep=',')
@@ -24,15 +25,18 @@ X = X.reshape((samples, x * y))
 print(X.shape)
 print(len(Y))
 
-classifier = svm.SVC(kernel='rbf', C=80, gamma=0.25)
+classifier = svm.SVC(kernel='rbf', C=100, gamma=0.25)
 classifier.fit(X, Y)
 porter = Porter(classifier, language='java')
 output = porter.export()
 
 
-file = open("Prediction.csv", "r")
+file = open("Dataset.csv", "r")
 reader = csv.reader(file)
-drivingCounter = 0
+next(reader)
+correctCounter = 0
+lineCounter = 0
+
 for row in reader:
     varianceArray = np.fromstring(row[0], dtype=np.float, sep=',')
     xZeroCrossingsArray = np.fromstring(row[1], dtype=np.float, sep=',')
@@ -40,7 +44,11 @@ for row in reader:
     zZeroCrossingsArray = np.fromstring(row[3], dtype=np.float, sep=',')
     predictionArray = np.array([varianceArray, xZeroCrossingsArray, yZeroCrossingsArray, zZeroCrossingsArray])
     predictionArray = predictionArray.reshape(1, -1)
-    print(classifier.predict(predictionArray))
+    result = classifier.predict(predictionArray)
+    if result[0] in row[4]:
+        correctCounter = correctCounter+1
+    lineCounter = lineCounter+1
+    print(result)
 
 
 with open('SVC.java', 'w') as f:
@@ -60,4 +68,6 @@ with open("output.txt", 'w') as f:
         if row:
             f.write(row + "\n")
         vectorsString = vectorsString[vectorsString.find("}") + 1:len(vectorsString)]
+
+print((correctCounter/lineCounter)*100)
 
